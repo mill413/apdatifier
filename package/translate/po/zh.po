@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: apdatifier\n"
 "Report-Msgid-Bugs-To: https://github.com/exequtic/apdatifier\n"
 "POT-Creation-Date: 2025-05-15 21:30+0300\n"
-"PO-Revision-Date: 2025-06-08 19:45+0800\n"
+"PO-Revision-Date: 2025-06-16 20:04+0800\n"
 "Last-Translator: Mill Haruto <mill413@outlook.com>\n"
 "Language-Team: \n"
 "Language: zh\n"
@@ -625,7 +625,7 @@ msgstr "<br><br>对于挂件开发者：<br>不要忘记更新 metadata.json 文
 
 #: ../contents/ui/configuration/General.qml ../contents/ui/representation/Expanded.qml
 msgid "News"
-msgstr "新闻通知"
+msgstr "新闻"
 
 #: ../contents/ui/configuration/General.qml
 msgid "Arch Linux News"
@@ -922,7 +922,7 @@ msgstr "重启 plasmashell"
 
 #: ../contents/ui/configuration/Upgrade.qml
 msgid "After upgrading widget, the old version will still remain in memory until you restart plasmashell. To avoid doing this manually, enable this option."
-msgstr "升级挂件后，旧版本仍会驻留在内存中，直到您重启 plasmashell。为避免手动操作，建议启用此选项"
+msgstr "升级挂件后，旧版本仍会驻留在内存中，直到您重启 plasmashell。为避免手动操作，建议启用此选项。"
 
 #: ../contents/ui/configuration/Upgrade.qml
 msgid "Command"
