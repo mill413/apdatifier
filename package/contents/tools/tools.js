@@ -214,12 +214,20 @@ function checkUpdates() {
     sts.busy = true
     sts.errMsg = ""
 
+    const dbPath = pkg.checkupdates ? " --dbpath /tmp/apdatifier-db" : ""
+    const pkgsync = "pacman -Sl" + dbPath
+    const pkginfo = "pacman -Qi" + dbPath
+    const pkgfiles = "pacman -Ql" + dbPath
+
+    const checkupDB = "export CHECKUPDATES_DB=/tmp/apdatifier-db; checkupdates"
+    const checkupAUR = `${cfg.wrapper} -Qua` + dbPath
+
     let arch = [], flatpak = [], widgets = []
 
     const archCmd = 
             !pkg.pacman || !cfg.arch ? false
                 : pkg.checkupdates
-                    ? cfg.aur ? `checkupdates; ${cfg.wrapper} -Qua` : "checkupdates"
+                    ? cfg.aur ? `${checkupDB}; ${checkupAUR}` : `${checkupDB}`
                     : cfg.aur ? `${cfg.wrapper} -Qu` : "pacman -Qu"
 
     const feeds = [
@@ -261,7 +269,7 @@ function checkUpdates() {
     }
 
     function allArch(upd) {
-        execute("pacman -Sl", (cmd, out, err, code) => {
+        execute(pkgsync, (cmd, out, err, code) => {
             if (Error(code, err)) return
             descArch(upd, out.split("\n").filter(line => /\[.*\]/.test(line)))
         }, true )
@@ -269,7 +277,7 @@ function checkUpdates() {
 
     function descArch(upd, all) {
         const pkgs = upd.map(l => l.split(" ")[0]).join(' ')
-        execute(`pacman -Qi ${pkgs}`, (cmd, out, err, code) => {
+        execute(`${pkginfo} ${pkgs}`, (cmd, out, err, code) => {
             if (Error(code, err)) return
             iconsArch(upd, all, out, pkgs)
         }, true )
@@ -282,7 +290,7 @@ function checkUpdates() {
                 icon=$(awk -F= '/^Icon=/ {print $2; exit}' "$file" 2>/dev/null || true) && [ -n "$icon" ] || continue
                 processed="$processed $pkg"
                 echo "$pkg $icon"
-            done < <(pacman -Ql ${pkgs} | grep '/usr/share/applications/.*\.desktop$')`
+            done < <(${pkgfiles} ${pkgs} | grep '/usr/share/applications/.*\.desktop$')`
 
         execute(getIcons, (cmd, out, err, code) => {
             const icons = (out && !err) ? out.split('\n').map(l => ({ NM: l.split(' ')[0], IN: l.split(' ')[1] })) : []
@@ -294,7 +302,7 @@ function checkUpdates() {
     function checkFlatpak() {
         sts.statusIco = cfg.ownIconsUI ? "status_flatpak" : "apdatifier-flatpak"
         sts.statusMsg = i18n("Checking flatpak updates...")
-        execute("flatpak remote-ls --app --updates --show-details", (cmd, out, err, code) => {
+        execute("flatpak update --appstream >/dev/null 2>&1; flatpak remote-ls --app --updates --show-details", (cmd, out, err, code) => {
             if (Error(code, err)) return
             out ? descFlatpak(out.trim()) : cfg.widgets ? checkWidgets() : merge()
         }, true )
@@ -456,6 +464,8 @@ function sortList(list, byName) {
         const repo = a.RE.localeCompare(b.RE)
         if (byName || !cfg.sorting) return name
 
+        if (a.IM !== b.IM) return a.IM ? -1 : 1
+
         const develA = a.RE.includes("devel")
         const develB = b.RE.includes("devel")
         if (develA !== develB) return develA ? -1 : 1
@@ -582,6 +592,7 @@ function applyRules(list) {
     list.forEach(el => {
         el.IC = el.IN ? el.IN : el.ID ? el.ID : "apdatifier-package"
         el.EX = false
+        el.IM = false
     })
 
     function applyRule(el, rule) {
@@ -596,6 +607,7 @@ function applyRules(list) {
         if (types[rule.type]()) {
             el.IC = rule.icon
             el.EX = rule.excluded
+            el.IM = rule.important
         }
     }
 
@@ -615,6 +627,7 @@ function keys(list) {
 
         if (el.hasOwnProperty("IC")) delete el["IC"]
         if (el.hasOwnProperty("EX")) delete el["EX"]
+        if (el.hasOwnProperty("IM")) delete el["IM"]
     })
 
     return list
